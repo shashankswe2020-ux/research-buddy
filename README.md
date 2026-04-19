@@ -47,27 +47,33 @@ Research Buddy guides you through **9 phases** from idea to publication. Each
 phase has a **readiness gate** — a set of criteria that must be met before you
 can advance.
 
+```mermaid
+graph LR
+    P1["💡 Phase 1\nIdea & Scope"]
+    P2["📚 Phase 2\nLiterature Review"]
+    P3["📐 Phase 3\nOutline & Structure"]
+    P4["✍️ Phase 4\nSection Drafting"]
+    P5["📎 Phase 5\nCitation Management"]
+    P6[" Phase 6\nRevision & Polishing"]
+    P7["🔍 Phase 7\nPeer Review Simulation"]
+    P8["📦 Phase 8\nFinal Assembly"]
+    P9["📢 Phase 9\nPost-Submission"]
+
+    P1 -->|"🚦 Gate"| P2 -->|"🚦 Gate"| P3 -->|"🚦 Gate"| P4 -->|"🚦 Gate"| P5
+    P5 -->|"🚦 Gate"| P6 -->|"🚦 Gate"| P7 -->|"🚦 Gate"| P8 -->|"🚦 Gate"| P9
+
+    style P1 fill:#1f6feb,color:#fff,stroke:#388bfd
+    style P2 fill:#1f6feb,color:#fff,stroke:#388bfd
+    style P3 fill:#1f6feb,color:#fff,stroke:#388bfd
+    style P4 fill:#1f6feb,color:#fff,stroke:#388bfd
+    style P5 fill:#1f6feb,color:#fff,stroke:#388bfd
+    style P6 fill:#8b5cf6,color:#fff,stroke:#a78bfa
+    style P7 fill:#8b5cf6,color:#fff,stroke:#a78bfa
+    style P8 fill:#8b5cf6,color:#fff,stroke:#a78bfa
+    style P9 fill:#238636,color:#fff,stroke:#2ea043
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                                                                             │
-│     💡            📚            📐            ✍️             📎             │
-│   PHASE 1  ──→  PHASE 2  ──→  PHASE 3  ──→  PHASE 4  ──→  PHASE 5        │
-│   Idea &        Literature     Outline &     Section       Citation        │
-│   Scope         Review         Structure     Drafting      Management      │
-│     │              │              │              │              │           │
-│     🚦             🚦             🚦             🚦             🚦          │
-│                                                                             │
-│        ──→  🔄            🔍            📦            📢                    │
-│           PHASE 6  ──→  PHASE 7  ──→  PHASE 8  ──→  PHASE 9               │
-│           Revision &    Peer Review   Final          Post-Submission       │
-│           Polishing     Simulation    Assembly       & Publication          │
-│              │              │              │              │                  │
-│              🚦             🚦             🚦             🚦                 │
-│                                                                             │
-│   🚦 = Readiness Gate — explicit criteria must pass before advancing       │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+
+> 🚦 **Readiness Gates** between every phase — explicit criteria must pass before advancing.
 
 ### Phase Summary
 
@@ -87,69 +93,48 @@ can advance.
 
 ## 🏗 Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        RESEARCH BUDDY                               │
-│                                                                     │
-│  ┌──────────────────────────────────────────────────────────────┐  │
-│  │                        AGENTS                                 │  │
-│  │                                                               │  │
-│  │  ┌─────────────────┐  ┌──────────────┐  ┌────────────────┐  │  │
-│  │  │ research-paper   │  │ code-reviewer │  │ ship           │  │  │
-│  │  │ (orchestrator)   │  │ (structural   │  │ (final         │  │  │
-│  │  │                  │  │  reviewer)    │  │  assembly)     │  │  │
-│  │  │ Phases 1-7       │  │ Phase 7       │  │ Phases 8-9    │  │  │
-│  │  └────────┬─────────┘  └──────┬───────┘  └───────┬───────┘  │  │
-│  │           │                    │                    │          │  │
-│  └───────────┼────────────────────┼────────────────────┼──────────┘  │
-│              │                    │                    │              │
-│  ┌───────────┼────────────────────┼────────────────────┼──────────┐  │
-│  │           ▼                    ▼                    ▼   SKILLS │  │
-│  │                                                               │  │
-│  │  ┌──────────────────┐  ┌──────────────────┐                   │  │
-│  │  │ spec-driven-     │  │ planning-and-    │                   │  │
-│  │  │ development      │  │ task-breakdown   │                   │  │
-│  │  │                  │  │                  │                   │  │
-│  │  │ Full lifecycle   │  │ Break paper into │                   │  │
-│  │  │ + readiness gates│  │ writing tasks    │                   │  │
-│  │  └──────────────────┘  └──────────────────┘                   │  │
-│  │                                                               │  │
-│  │  ┌──────────────────┐  ┌──────────────────┐                   │  │
-│  │  │ code-review-and- │  │ documentation-   │                   │  │
-│  │  │ quality          │  │ and-adrs         │                   │  │
-│  │  │                  │  │                  │                   │  │
-│  │  │ 5-axis manuscript│  │ Research Decision│                   │  │
-│  │  │ quality review   │  │ Records (RDRs)   │                   │  │
-│  │  └──────────────────┘  └──────────────────┘                   │  │
-│  │                                                               │  │
-│  │  ┌──────────────────┐                                         │  │
-│  │  │ shipping-and-    │                                         │  │
-│  │  │ launch           │                                         │  │
-│  │  │                  │                                         │  │
-│  │  │ Pre-submission   │                                         │  │
-│  │  │ checklist & fmt  │                                         │  │
-│  │  └──────────────────┘                                         │  │
-│  └───────────────────────────────────────────────────────────────┘  │
-│                                                                     │
-│  ┌───────────────────────────────────────────────────────────────┐  │
-│  │                     OUTPUT ARTIFACTS                           │  │
-│  │                                                               │  │
-│  │  docs/research/                                               │  │
-│  │  ├── research-brief.md          (Phase 1)                    │  │
-│  │  ├── literature-review.md       (Phase 2)                    │  │
-│  │  ├── paper-outline.md           (Phase 3)                    │  │
-│  │  ├── draft/                     (Phase 4)                    │  │
-│  │  ├── references.bib             (Phase 5)                    │  │
-│  │  ├── revision-notes.md          (Phase 6)                    │  │
-│  │  ├── reviews/                   (Phase 7)                    │  │
-│  │  ├── final/                     (Phase 8)                    │  │
-│  │  ├── submissions/               (Phase 9a)                   │  │
-│  │  ├── rebuttal/                  (Phase 9b)                   │  │
-│  │  ├── camera-ready/              (Phase 9c)                   │  │
-│  │  ├── dissemination/             (Phase 9d)                   │  │
-│  │  └── decisions/                 (RDRs)                       │  │
-│  └───────────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph AGENTS["🤖 Agents"]
+        RP["research-paper\n(orchestrator)\nPhases 1–7"]
+        CR["code-reviewer\n(structural reviewer)\nPhase 7"]
+        SH["ship\n(final assembly)\nPhases 8–9"]
+    end
+
+    subgraph SKILLS["⚙️ Skills"]
+        S1["spec-driven-\ndevelopment\n─────────────\nFull lifecycle\n+ readiness gates"]
+        S2["planning-and-\ntask-breakdown\n─────────────\nBreak paper into\nwriting tasks"]
+        S3["code-review-\nand-quality\n─────────────\n5-axis manuscript\nquality review"]
+        S4["documentation-\nand-adrs\n─────────────\nResearch Decision\nRecords (RDRs)"]
+        S5["shipping-and-\nlaunch\n─────────────\nPre-submission\nchecklist & fmt"]
+    end
+
+    subgraph OUTPUT["📂 Output Artifacts — docs/research/"]
+        O1["research-brief.md\n(Phase 1)"]
+        O2["literature-review.md\n(Phase 2)"]
+        O3["paper-outline.md\n(Phase 3)"]
+        O4["draft/\n(Phase 4)"]
+        O5["references.bib\n(Phase 5)"]
+        O6["revision-notes.md\n(Phase 6)"]
+        O7["reviews/\n(Phase 7)"]
+        O8["final/\n(Phase 8)"]
+        O9["submissions/ · dissemination/\n(Phase 9)"]
+    end
+
+    RP --> S1 & S2 & S3 & S4
+    RP -.->|dispatches| CR & SH
+    SH --> S5
+
+    RP --> O1 & O2 & O3 & O4 & O5 & O6
+    CR --> O7
+    SH --> O8 & O9
+
+    style AGENTS fill:#161b22,stroke:#30363d,color:#e6edf3
+    style SKILLS fill:#161b22,stroke:#30363d,color:#e6edf3
+    style OUTPUT fill:#161b22,stroke:#30363d,color:#e6edf3
+    style RP fill:#1f6feb,color:#fff,stroke:#388bfd
+    style CR fill:#8b5cf6,color:#fff,stroke:#a78bfa
+    style SH fill:#238636,color:#fff,stroke:#2ea043
 ```
 
 ---
@@ -459,19 +444,29 @@ docs/research/
 
 ### How Agents and Skills Connect
 
-```
-User Request
-    │
-    ▼
-┌─────────────────────┐
-│  research-paper      │──── uses ──→  spec-driven-development (lifecycle tracking)
-│  agent               │──── uses ──→  planning-and-task-breakdown (work planning)
-│  (orchestrator)      │──── uses ──→  code-review-and-quality (draft quality)
-│                      │──── uses ──→  documentation-and-adrs (decision records)
-│                      │
-│                      │──── dispatches ──→  code-reviewer agent (structural review)
-│                      │──── dispatches ──→  ship agent (final assembly)
-└─────────────────────┘
+```mermaid
+graph LR
+    U(("👤 User\nRequest")) --> RP
+
+    RP["🧠 research-paper\nagent (orchestrator)"]
+    CR["🔍 code-reviewer\nagent"]
+    SH["🚀 ship\nagent"]
+
+    RP -->|uses| SK1["⚙️ spec-driven-development\n(lifecycle tracking)"]
+    RP -->|uses| SK2["⚙️ planning-and-task-breakdown\n(work planning)"]
+    RP -->|uses| SK3["⚙️ code-review-and-quality\n(draft quality)"]
+    RP -->|uses| SK4["⚙️ documentation-and-adrs\n(decision records)"]
+    RP -.->|dispatches| CR
+    RP -.->|dispatches| SH
+
+    style U fill:#d29922,color:#000,stroke:#e3b341
+    style RP fill:#1f6feb,color:#fff,stroke:#388bfd
+    style CR fill:#8b5cf6,color:#fff,stroke:#a78bfa
+    style SH fill:#238636,color:#fff,stroke:#2ea043
+    style SK1 fill:#21262d,color:#e6edf3,stroke:#30363d
+    style SK2 fill:#21262d,color:#e6edf3,stroke:#30363d
+    style SK3 fill:#21262d,color:#e6edf3,stroke:#30363d
+    style SK4 fill:#21262d,color:#e6edf3,stroke:#30363d
 ```
 
 ---
@@ -570,41 +565,51 @@ We ran Research Buddy through all 9 phases with a demo paper:
 
 ### Demo Paper Summary
 
+```mermaid
+graph TB
+    subgraph RQ["🔬 Research Question"]
+        Q["How can adaptive RAG pipelines dynamically adjust\nretrieval depth and source selection to\nminimize hallucinations in LLMs?"]
+    end
+
+    subgraph CONTRIB["🎯 Key Contributions"]
+        C1["1. AdaptRAG framework\nwith 3-tier adaptive retrieval"]
+        C2["2. Query complexity classifier\n87% accuracy · 30ms overhead"]
+        C3["3. 12-18% hallucination reduction\non 3 benchmarks"]
+        C4["4. Ablation study\nadaptive depth = #1 component"]
+    end
+
+    subgraph RESULTS["📊 Main Results (LLaMA-3-8B)"]
+        R1["TruthfulQA\nSelf-RAG: 48.3\nAdaptRAG: 54.6 (+6.3)"]
+        R2["HaluEval\nSelf-RAG: 73.2\nAdaptRAG: 79.8 (+6.6)"]
+        R3["FActScore\nSelf-RAG: 71.8\nAdaptRAG: 78.4 (+6.6)"]
+    end
+
+    subgraph REVIEW["🔍 Peer Review Scores"]
+        V1["🧠 Domain Expert\n7/10 · Weak Accept"]
+        V2["📐 Methodologist\n6/10 · Borderline"]
+        V3["🤔 Skeptic\n5/10 · Weak Reject"]
+    end
+
+    RQ --> CONTRIB --> RESULTS --> REVIEW
+
+    style RQ fill:#161b22,stroke:#388bfd,color:#e6edf3
+    style CONTRIB fill:#161b22,stroke:#238636,color:#e6edf3
+    style RESULTS fill:#161b22,stroke:#d29922,color:#e6edf3
+    style REVIEW fill:#161b22,stroke:#8b5cf6,color:#e6edf3
+    style Q fill:#0d1117,color:#e6edf3,stroke:#30363d
+    style C1 fill:#0d1117,color:#e6edf3,stroke:#30363d
+    style C2 fill:#0d1117,color:#e6edf3,stroke:#30363d
+    style C3 fill:#0d1117,color:#e6edf3,stroke:#30363d
+    style C4 fill:#0d1117,color:#e6edf3,stroke:#30363d
+    style R1 fill:#0d1117,color:#3fb950,stroke:#30363d
+    style R2 fill:#0d1117,color:#3fb950,stroke:#30363d
+    style R3 fill:#0d1117,color:#3fb950,stroke:#30363d
+    style V1 fill:#238636,color:#fff,stroke:#2ea043
+    style V2 fill:#d29922,color:#000,stroke:#e3b341
+    style V3 fill:#f85149,color:#fff,stroke:#ff7b72
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  📝 AdaptRAG — Demo Paper Results Summary                                   │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  Research Question:                                                         │
-│  How can adaptive RAG pipelines dynamically adjust retrieval depth          │
-│  and source selection to minimize hallucinations in LLMs?                   │
-│                                                                             │
-│  Key Contributions:                                                         │
-│  1. AdaptRAG framework with 3-tier adaptive retrieval                       │
-│  2. Query complexity classifier (87% accuracy, 30ms overhead)               │
-│  3. 12-18% hallucination reduction on 3 benchmarks                         │
-│  4. Ablation showing adaptive depth is the #1 component                    │
-│                                                                             │
-│  Main Results (LLaMA-3-8B):                                                │
-│  ┌──────────────┬───────────────┬────────────┬────────────┐                │
-│  │ Method       │ TruthfulQA    │ HaluEval   │ FActScore  │                │
-│  ├──────────────┼───────────────┼────────────┼────────────┤                │
-│  │ Self-RAG     │ 48.3          │ 73.2       │ 71.8       │                │
-│  │ AdaptRAG     │ 54.6 (+6.3)   │ 79.8 (+6.6)│ 78.4 (+6.6)│                │
-│  └──────────────┴───────────────┴────────────┴────────────┘                │
-│                                                                             │
-│  Per-Complexity Gains:                                                      │
-│  Simple: +3.7 │ Intermediate: +7.1 │ Complex: +9.7                        │
-│                                                                             │
-│  Simulated Peer Review Scores:                                              │
-│  R1 (Domain Expert): Weak Accept (6/10)                                    │
-│  R2 (Methodologist): Borderline (5/10)                                     │
-│  R3 (Skeptic):       Weak Accept (6/10)                                    │
-│  Average: 5.7 — Actionable feedback with 6-day revision plan               │
-│                                                                             │
-│  Target Venue: ACL 2026 (8-page long paper)                                │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+
+**Per-Complexity Gains:** Simple +3.7 · Intermediate +7.1 · Complex +9.7 · **Target Venue:** ACL 2026 (8-page long paper)
 
 ### Generated Artifacts
 
