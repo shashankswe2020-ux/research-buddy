@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.toc
+*.lof
+*.lot
+
+# Keep compiled PDF
+!docs/research/final/paper.pdf
+
+# Node
+node_modules/
