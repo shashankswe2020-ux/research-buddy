@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Research Buddy — Dashboard</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2333;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-dim: #8b949e;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --red: #f85149;
+    --purple: #bc8cff;
+    --orange: #f0883e;
+    --cyan: #39d353;
+    --pink: #f778ba;
+    --radius: 12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    padding: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .header h1 span.emoji { font-size: 32px; }
+  .header .meta {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .badge-green { background: rgba(63,185,80,0.15); color: var(--green); border: 1px solid rgba(63,185,80,0.3); }
+  .badge-blue { background: rgba(88,166,255,0.15); color: var(--accent); border: 1px solid rgba(88,166,255,0.3); }
+  .badge-purple { background: rgba(188,140,255,0.15); color: var(--purple); border: 1px solid rgba(188,140,255,0.3); }
+
+  /* Stats Row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .stat-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .stat-card .stat-value {
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .stat-card .stat-label {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+  }
+  .card-header:hover { background: var(--surface2); }
+  .card-header h2 {
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-header .chevron {
+    transition: transform 0.2s;
+    color: var(--text-dim);
+  }
+  .card-header.collapsed .chevron { transform: rotate(-90deg); }
+  .card-body { padding: 20px; }
+  .card.collapsed .card-body { display: none; }
+
+  /* Phase Timeline */
+  .timeline { display: flex; flex-direction: column; gap: 0; }
+  .phase-row {
+    display: grid;
+    grid-template-columns: 40px 1fr 160px 100px;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(48,54,61,0.5);
+    transition: background 0.15s;
+    border-radius: 6px;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .phase-row:hover { background: var(--surface2); }
+  .phase-row:last-child { border-bottom: none; }
+  .phase-num {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .phase-num.done { background: var(--green); color: #000; }
+  .phase-num.active { background: var(--accent); color: #000; animation: pulse 2s infinite; }
+  .phase-num.pending { background: var(--border); color: var(--text-dim); }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(88,166,255,0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(88,166,255,0); }
+  }
+  .phase-info h3 { font-size: 14px; font-weight: 600; }
+  .phase-info p { font-size: 12px; color: var(--text-dim); }
+  .phase-output a {
+    font-size: 12px;
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .phase-output a:hover { text-decoration: underline; }
+  .phase-gate {
+    font-size: 12px;
+    font-weight: 600;
+    text-align: right;
+  }
+  .gate-pass { color: var(--green); }
+  .gate-fail { color: var(--red); }
+
+  /* Progress bar */
+  .progress-bar-container {
+    background: var(--surface2);
+    border-radius: 8px;
+    height: 12px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    border-radius: 8px;
+    background: linear-gradient(90deg, var(--green), var(--cyan));
+    transition: width 0.6s ease;
+  }
+  .progress-text {
+    font-size: 13px;
+    color: var(--text-dim);
+    text-align: right;
+  }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; }
+  th, td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid rgba(48,54,61,0.5);
+    font-size: 13px;
+  }
+  th {
+    color: var(--text-dim);
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  tr:hover td { background: rgba(88,166,255,0.04); }
+  td a { color: var(--accent); text-decoration: none; }
+  td a:hover { text-decoration: underline; }
+
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .tag-rag { background: rgba(88,166,255,0.15); color: var(--accent); }
+  .tag-adaptive { background: rgba(188,140,255,0.15); color: var(--purple); }
+  .tag-benchmark { background: rgba(240,136,62,0.15); color: var(--orange); }
+  .tag-hallucination { background: rgba(248,81,73,0.15); color: var(--red); }
+  .tag-retrieval { background: rgba(57,211,83,0.15); color: var(--cyan); }
+  .tag-model { background: rgba(210,153,34,0.15); color: var(--yellow); }
+  .tag-survey { background: rgba(247,120,186,0.15); color: var(--pink); }
+  .tag-robustness { background: rgba(139,148,158,0.15); color: var(--text-dim); }
+
+  /* Citation bar chart */
+  .bar-chart { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+  .bar-row { display: flex; align-items: center; gap: 12px; }
+  .bar-label { width: 130px; font-size: 12px; color: var(--text-dim); text-align: right; flex-shrink: 0; }
+  .bar-track { flex: 1; height: 22px; background: var(--surface2); border-radius: 4px; overflow: hidden; position: relative; }
+  .bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 8px; font-size: 11px; font-weight: 700; min-width: 28px; }
+  .bar-fill.c1 { background: rgba(88,166,255,0.4); }
+  .bar-fill.c2 { background: rgba(188,140,255,0.4); }
+  .bar-fill.c3 { background: rgba(240,136,62,0.4); }
+  .bar-fill.c4 { background: rgba(248,81,73,0.4); }
+  .bar-fill.c5 { background: rgba(57,211,83,0.4); }
+  .bar-fill.c6 { background: rgba(210,153,34,0.4); }
+  .bar-fill.c7 { background: rgba(247,120,186,0.4); }
+  .bar-fill.c8 { background: rgba(139,148,158,0.4); }
+
+  /* Review cards */
+  .review-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+  .review-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .review-card h3 { font-size: 14px; margin-bottom: 12px; }
+  .score-circle {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 auto 12px;
+  }
+  .score-high { border: 3px solid var(--green); color: var(--green); }
+  .score-mid { border: 3px solid var(--yellow); color: var(--yellow); }
+  .score-low { border: 3px solid var(--red); color: var(--red); }
+  .review-card .rec {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .review-card .concern {
+    font-size: 12px;
+    color: var(--text-dim);
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+    margin-top: 8px;
+  }
+
+  /* Submission timeline */
+  .sub-timeline {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 16px 0;
+    overflow-x: auto;
+  }
+  .sub-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 120px;
+  }
+  .sub-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    margin-bottom: 8px;
+  }
+  .sub-dot.done { background: var(--green); }
+  .sub-dot.waiting { background: var(--yellow); }
+  .sub-dot.future { background: var(--border); }
+  .sub-node .sub-label { font-size: 12px; font-weight: 600; text-align: center; }
+  .sub-node .sub-date { font-size: 11px; color: var(--text-dim); text-align: center; }
+  .sub-line {
+    flex: 1;
+    height: 2px;
+    background: var(--border);
+    min-width: 32px;
+    margin-bottom: 28px;
+  }
+  .sub-line.done { background: var(--green); }
+
+  /* Search/filter */
+  .search-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    color: var(--text);
+    font-size: 13px;
+    width: 260px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-box:focus { border-color: var(--accent); }
+  .search-box::placeholder { color: var(--text-dim); }
+
+  /* Artifact tree */
+  .tree { font-family: 'SF Mono', Monaco, Consolas, monospace; font-size: 13px; line-height: 1.8; }
+  .tree a { color: var(--accent); text-decoration: none; }
+  .tree a:hover { text-decoration: underline; }
+  .tree .dim { color: var(--text-dim); }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 32px 0 16px;
+    color: var(--text-dim);
+    font-size: 12px;
+  }
+
+  /* Two col layout */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <h1><span class="emoji">🎓</span> Research Buddy Dashboard</h1>
+  <div class="meta">
+    <span class="badge badge-green">9/9 Phases Complete</span>
+    <span class="badge badge-blue">ACL 2026</span>
+    <span class="badge badge-purple">20 Citations</span>
+  </div>
+</div>
+
+<!-- Paper Title -->
+<div class="card" style="margin-bottom:24px; border-left: 3px solid var(--accent);">
+  <div class="card-body" style="padding:16px 20px;">
+    <div style="font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">Current Paper</div>
+    <div style="font-size:18px; font-weight:700;">AdaptRAG: Adaptive Retrieval-Augmented Generation for Reducing Hallucinations in Large Language Models</div>
+    <div style="font-size:13px; color:var(--text-dim); margin-top:6px;">Target: ACL 2026 (ARR) · Long Paper · Double-Blind · 8 pages + refs</div>
+  </div>
+</div>
+
+<!-- Stats Row -->
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-value" style="color:var(--green);">9/9</div>
+    <div class="stat-label">Phases Complete</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" style="color:var(--accent);">20</div>
+    <div class="stat-label">Citations</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" style="color:var(--purple);">7</div>
+    <div class="stat-label">Sections Drafted</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" style="color:var(--yellow);">6.0</div>
+    <div class="stat-label">Avg Review Score</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" style="color:var(--orange);">~6,350</div>
+    <div class="stat-label">Words Written</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" style="color:var(--cyan);">23</div>
+    <div class="stat-label">Artifacts</div>
+  </div>
+</div>
+
+<!-- Phase Progress -->
+<div class="card" id="phases-card">
+  <div class="card-header" onclick="toggleCard('phases-card')">
+    <h2>🧭 Phase Progress</h2>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="card-body">
+    <div class="progress-bar-container">
+      <div class="progress-bar-fill" style="width:100%"></div>
+    </div>
+    <div class="progress-text">9 of 9 phases complete — 100%</div>
+    <div class="timeline" style="margin-top:16px;">
+      <div class="phase-row">
+        <div class="phase-num done">1</div>
+        <div class="phase-info"><h3>Idea & Scope</h3><p>Define research question, gap analysis, feasibility</p></div>
+        <div class="phase-output"><a href="research-brief.md">research-brief.md</a></div>
+        <div class="phase-gate gate-pass">✅ Passed</div>
+      </div>
+      <div class="phase-row">
+        <div class="phase-num done">2</div>
+        <div class="phase-info"><h3>Literature Review</h3><p>Systematic search, paper analysis, synthesis</p></div>
+        <div class="phase-output"><a href="literature-review.md">literature-review.md</a></div>
+        <div class="phase-gate gate-pass">✅ Passed</div>
+      </div>
+      <div class="phase-row">
+        <div class="phase-num done">3</div>
+        <div class="phase-info"><h3>Outline & Structure</h3><p>Structure selection, section planning, argument flow</p></div>
+        <div class="phase-output"><a href="paper-outline.md">paper-outline.md</a></div>
+        <div class="phase-gate gate-pass">✅ Passed</div>
+      </div>
+      <div class="phase-row">
+        <div class="phase-num done">4</div>
+        <div class="phase-info"><h3>Section Drafting</h3><p>Write each section following academic conventions</p></div>
+        <div class="phase-output"><a href="draft/">draft/ (7 files)</a></div>
+        <div class="phase-gate gate-pass">✅ Passed</div>
+      </div>
+      <div class="phase-row">
+        <div class="phase-num done">5</div>
+        <div class="phase-info"><h3>Citation Management</h3><p>BibTeX references, in-text citations, validation</p></div>
+        <div class="phase-output"><a href="references.bib">references.bib</a></div>
+        <div class="phase-gate gate-pass">✅ Passed</div>
+      </div>
+      <div class="phase-row">
+        <div class="phase-num done">6</div>
+        <div class="phase-info"><h3>Revision & Polishing</h3><p>Structure, writing quality, technical accuracy</p></div>
+        <div class="phase-output"><a href="revision-notes.md">revision-notes.md</a></div>
+        <div class="phase-gate gate-pass">✅ Passed</div>
+      </div>
+      <div class="phase-row">
+        <div class="phase-num done">7</div>
+        <div class="phase-info"><h3>Peer Review Simulation</h3><p>Domain expert, methodologist, and skeptic reviews</p></div>
+        <div class="phase-output"><a href="reviews/">reviews/ (4 files)</a></div>
+        <div class="phase-gate gate-pass">✅ Passed</div>
+      </div>
+      <div class="phase-row">
+        <div class="phase-num done">8</div>
+        <div class="phase-info"><h3>Final Assembly</h3><p>Compile manuscript, format for venue</p></div>
+        <div class="phase-output"><a href="final/paper.tex">final/paper.tex</a></div>
+        <div class="phase-gate gate-pass">✅ Passed</div>
+      </div>
+      <div class="phase-row">
+        <div class="phase-num done">9</div>
+        <div class="phase-info"><h3>Post-Submission</h3><p>Rebuttal, camera-ready, dissemination</p></div>
+        <div class="phase-output"><a href="submissions/submission-log.md">submission-log.md</a></div>
+        <div class="phase-gate gate-pass">✅ Passed</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="two-col">
+
+<!-- Drafted Sections -->
+<div class="card" id="sections-card">
+  <div class="card-header" onclick="toggleCard('sections-card')">
+    <h2>📝 Drafted Sections</h2>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="card-body">
+    <table>
+      <thead><tr><th>Section</th><th>Words</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td><a href="draft/abstract.md">Abstract</a></td><td>~250</td><td style="color:var(--green);">✅ Final</td></tr>
+        <tr><td><a href="draft/introduction.md">Introduction</a></td><td>~1,200</td><td style="color:var(--green);">✅ Final</td></tr>
+        <tr><td><a href="draft/related-work.md">Related Work</a></td><td>~1,000</td><td style="color:var(--green);">✅ Final</td></tr>
+        <tr><td><a href="draft/methodology.md">Methodology</a></td><td>~1,500</td><td style="color:var(--green);">✅ Final</td></tr>
+        <tr><td><a href="draft/experiments.md">Experiments</a></td><td>~1,200</td><td style="color:var(--green);">✅ Final</td></tr>
+        <tr><td><a href="draft/discussion.md">Discussion</a></td><td>~800</td><td style="color:var(--green);">✅ Final</td></tr>
+        <tr><td><a href="draft/conclusion.md">Conclusion</a></td><td>~400</td><td style="color:var(--green);">✅ Final</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:12px; font-size:13px; color:var(--text-dim);">Total: ~6,350 words · 8 pages (excl. references)</div>
+  </div>
+</div>
+
+<!-- Peer Review -->
+<div class="card" id="reviews-card">
+  <div class="card-header" onclick="toggleCard('reviews-card')">
+    <h2>🔍 Peer Review Simulation</h2>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="card-body">
+    <div class="review-grid">
+      <div class="review-card">
+        <h3>🧠 Reviewer 1 — Domain Expert</h3>
+        <div class="score-circle score-high">7</div>
+        <div class="rec" style="color:var(--green);">Weak Accept</div>
+        <div class="concern"><strong>Key concern:</strong> Generalization to non-English domains untested</div>
+      </div>
+      <div class="review-card">
+        <h3>📐 Reviewer 2 — Methodologist</h3>
+        <div class="score-circle score-mid">6</div>
+        <div class="rec" style="color:var(--yellow);">Borderline</div>
+        <div class="concern"><strong>Key concern:</strong> Statistical significance tests needed</div>
+      </div>
+      <div class="review-card">
+        <h3>🤔 Reviewer 3 — Skeptic</h3>
+        <div class="score-circle score-low">5</div>
+        <div class="rec" style="color:var(--red);">Weak Reject</div>
+        <div class="concern"><strong>Key concern:</strong> Real-world deployment feasibility unclear</div>
+      </div>
+    </div>
+    <div style="margin-top:12px; text-align:center;">
+      <a href="reviews/review-response-plan.md" style="color:var(--accent); font-size:13px; text-decoration:none;">📄 View Response Plan →</a>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- Citation Library -->
+<div class="card" id="citations-card">
+  <div class="card-header" onclick="toggleCard('citations-card')">
+    <h2>📚 Citation Library (20 references)</h2>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="card-body">
+    <input type="text" class="search-box" id="cite-search" placeholder="🔍 Filter citations..." oninput="filterCitations()" style="margin-bottom:16px;">
+    <table id="cite-table">
+      <thead><tr><th>#</th><th>Key</th><th>Authors</th><th>Year</th><th>Venue</th><th>Category</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td><code>Lewis2020RAG</code></td><td>Lewis et al.</td><td>2020</td><td>NeurIPS</td><td><span class="tag tag-rag">Core RAG</span></td></tr>
+        <tr><td>2</td><td><code>Asai2024SelfRAG</code></td><td>Asai et al.</td><td>2024</td><td>ICLR</td><td><span class="tag tag-adaptive">Adaptive RAG</span></td></tr>
+        <tr><td>3</td><td><code>Yan2024CRAG</code></td><td>Yan et al.</td><td>2024</td><td>arXiv</td><td><span class="tag tag-adaptive">Adaptive RAG</span></td></tr>
+        <tr><td>4</td><td><code>Jiang2023FLARE</code></td><td>Jiang et al.</td><td>2023</td><td>EMNLP</td><td><span class="tag tag-adaptive">Adaptive RAG</span></td></tr>
+        <tr><td>5</td><td><code>Shi2024RePlug</code></td><td>Shi et al.</td><td>2024</td><td>NAACL</td><td><span class="tag tag-rag">Core RAG</span></td></tr>
+        <tr><td>6</td><td><code>Lin2022TruthfulQA</code></td><td>Lin et al.</td><td>2022</td><td>ACL</td><td><span class="tag tag-benchmark">Benchmark</span></td></tr>
+        <tr><td>7</td><td><code>Li2023HaluEval</code></td><td>Li et al.</td><td>2023</td><td>EMNLP</td><td><span class="tag tag-benchmark">Benchmark</span></td></tr>
+        <tr><td>8</td><td><code>Min2023FActScore</code></td><td>Min et al.</td><td>2023</td><td>EMNLP</td><td><span class="tag tag-benchmark">Benchmark</span></td></tr>
+        <tr><td>9</td><td><code>Huang2023Survey</code></td><td>Huang et al.</td><td>2023</td><td>ACM Surv.</td><td><span class="tag tag-hallucination">Hallucination</span></td></tr>
+        <tr><td>10</td><td><code>Gao2024RAGSurvey</code></td><td>Gao et al.</td><td>2024</td><td>arXiv</td><td><span class="tag tag-survey">Survey</span></td></tr>
+        <tr><td>11</td><td><code>Borgeaud2022RETRO</code></td><td>Borgeaud et al.</td><td>2022</td><td>ICML</td><td><span class="tag tag-rag">Core RAG</span></td></tr>
+        <tr><td>12</td><td><code>Izacard2021FiD</code></td><td>Izacard & Grave</td><td>2021</td><td>EACL</td><td><span class="tag tag-rag">Core RAG</span></td></tr>
+        <tr><td>13</td><td><code>Mallen2023Popularity</code></td><td>Mallen et al.</td><td>2023</td><td>ACL</td><td><span class="tag tag-hallucination">Hallucination</span></td></tr>
+        <tr><td>14</td><td><code>Yoran2024Robust</code></td><td>Yoran et al.</td><td>2024</td><td>EMNLP</td><td><span class="tag tag-robustness">Robustness</span></td></tr>
+        <tr><td>15</td><td><code>Brown2020GPT3</code></td><td>Brown et al.</td><td>2020</td><td>NeurIPS</td><td><span class="tag tag-model">Foundation Model</span></td></tr>
+        <tr><td>16</td><td><code>Touvron2023LLaMA</code></td><td>Touvron et al.</td><td>2023</td><td>arXiv</td><td><span class="tag tag-model">Foundation Model</span></td></tr>
+        <tr><td>17</td><td><code>Izacard2022Contriever</code></td><td>Izacard et al.</td><td>2022</td><td>TMLR</td><td><span class="tag tag-retrieval">Retrieval</span></td></tr>
+        <tr><td>18</td><td><code>Nogueira2020CrossEnc</code></td><td>Nogueira et al.</td><td>2020</td><td>EMNLP</td><td><span class="tag tag-retrieval">Retrieval</span></td></tr>
+        <tr><td>19</td><td><code>Yang2018HotpotQA</code></td><td>Yang et al.</td><td>2018</td><td>EMNLP</td><td><span class="tag tag-benchmark">Benchmark</span></td></tr>
+        <tr><td>20</td><td><code>Geva2021StrategyQA</code></td><td>Geva et al.</td><td>2021</td><td>TACL</td><td><span class="tag tag-benchmark">Benchmark</span></td></tr>
+      </tbody>
+    </table>
+
+    <!-- Category Chart -->
+    <div style="margin-top:24px;">
+      <h3 style="font-size:14px; margin-bottom:12px; color:var(--text-dim);">References by Category</h3>
+      <div class="bar-chart">
+        <div class="bar-row"><div class="bar-label">Benchmarks</div><div class="bar-track"><div class="bar-fill c3" style="width:50%;">5</div></div></div>
+        <div class="bar-row"><div class="bar-label">Core RAG</div><div class="bar-track"><div class="bar-fill c1" style="width:40%;">4</div></div></div>
+        <div class="bar-row"><div class="bar-label">Adaptive RAG</div><div class="bar-track"><div class="bar-fill c2" style="width:30%;">3</div></div></div>
+        <div class="bar-row"><div class="bar-label">Hallucination</div><div class="bar-track"><div class="bar-fill c4" style="width:20%;">2</div></div></div>
+        <div class="bar-row"><div class="bar-label">Foundation Models</div><div class="bar-track"><div class="bar-fill c6" style="width:20%;">2</div></div></div>
+        <div class="bar-row"><div class="bar-label">Retrieval</div><div class="bar-track"><div class="bar-fill c5" style="width:20%;">2</div></div></div>
+        <div class="bar-row"><div class="bar-label">Survey</div><div class="bar-track"><div class="bar-fill c7" style="width:10%;">1</div></div></div>
+        <div class="bar-row"><div class="bar-label">Robustness</div><div class="bar-track"><div class="bar-fill c8" style="width:10%;">1</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Submission Timeline -->
+<div class="card" id="submission-card">
+  <div class="card-header" onclick="toggleCard('submission-card')">
+    <h2>📦 Submission Timeline</h2>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="card-body">
+    <div class="sub-timeline">
+      <div class="sub-node">
+        <div class="sub-dot done"></div>
+        <div class="sub-label">Submitted</div>
+        <div class="sub-date">Feb 2026</div>
+      </div>
+      <div class="sub-line done"></div>
+      <div class="sub-node">
+        <div class="sub-dot waiting"></div>
+        <div class="sub-label">Under Review</div>
+        <div class="sub-date">Mar–Apr 2026</div>
+      </div>
+      <div class="sub-line"></div>
+      <div class="sub-node">
+        <div class="sub-dot future"></div>
+        <div class="sub-label">Notification</div>
+        <div class="sub-date">May 2026</div>
+      </div>
+      <div class="sub-line"></div>
+      <div class="sub-node">
+        <div class="sub-dot future"></div>
+        <div class="sub-label">Camera-Ready</div>
+        <div class="sub-date">Jun 2026</div>
+      </div>
+      <div class="sub-line"></div>
+      <div class="sub-node">
+        <div class="sub-dot future"></div>
+        <div class="sub-label">Conference</div>
+        <div class="sub-date">Aug 2026</div>
+      </div>
+    </div>
+    <table style="margin-top:16px;">
+      <tr><td style="color:var(--text-dim); width:140px;">Venue</td><td>ACL 2026 (ARR)</td></tr>
+      <tr><td style="color:var(--text-dim);">Track</td><td>Main Conference — Long Paper</td></tr>
+      <tr><td style="color:var(--text-dim);">Format</td><td>ACL 2026 LaTeX style</td></tr>
+      <tr><td style="color:var(--text-dim);">Anonymized</td><td>Yes (double-blind)</td></tr>
+      <tr><td style="color:var(--text-dim);">Page Count</td><td>8 pages + references</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- Artifact Map -->
+<div class="card" id="artifacts-card">
+  <div class="card-header" onclick="toggleCard('artifacts-card')">
+    <h2>🗂️ All Artifacts (23 files)</h2>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="card-body">
+    <div class="tree">
+<span class="dim">docs/research/</span>
+├── <a href="research-brief.md">research-brief.md</a> <span class="dim">← Phase 1</span>
+├── <a href="literature-review.md">literature-review.md</a> <span class="dim">← Phase 2</span>
+├── <a href="paper-outline.md">paper-outline.md</a> <span class="dim">← Phase 3</span>
+├── <a href="draft/">draft/</a> <span class="dim">← Phase 4</span>
+│   ├── <a href="draft/abstract.md">abstract.md</a>
+│   ├── <a href="draft/introduction.md">introduction.md</a>
+│   ├── <a href="draft/related-work.md">related-work.md</a>
+│   ├── <a href="draft/methodology.md">methodology.md</a>
+│   ├── <a href="draft/experiments.md">experiments.md</a>
+│   ├── <a href="draft/discussion.md">discussion.md</a>
+│   └── <a href="draft/conclusion.md">conclusion.md</a>
+├── <a href="references.bib">references.bib</a> <span class="dim">← Phase 5</span>
+├── <a href="references.md">references.md</a>
+├── <a href="revision-notes.md">revision-notes.md</a> <span class="dim">← Phase 6</span>
+├── <a href="reviews/">reviews/</a> <span class="dim">← Phase 7</span>
+│   ├── <a href="reviews/reviewer-1-domain-expert.md">reviewer-1-domain-expert.md</a>
+│   ├── <a href="reviews/reviewer-2-methodologist.md">reviewer-2-methodologist.md</a>
+│   ├── <a href="reviews/reviewer-3-skeptic.md">reviewer-3-skeptic.md</a>
+│   └── <a href="reviews/review-response-plan.md">review-response-plan.md</a>
+├── <a href="final/">final/</a> <span class="dim">← Phase 8</span>
+│   ├── <a href="final/paper.md">paper.md</a>
+│   ├── <a href="final/paper.tex">paper.tex</a>
+│   └── <a href="final/references.bib">references.bib</a>
+├── <a href="submissions/">submissions/</a> <span class="dim">← Phase 9</span>
+│   └── <a href="submissions/submission-log.md">submission-log.md</a>
+├── <a href="dissemination/">dissemination/</a>
+│   └── <a href="dissemination/slides.md">slides.md</a>
+└── <a href="decisions/">decisions/</a>
+    └── <a href="decisions/rdr-001.md">rdr-001.md</a>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  Research Buddy Dashboard · Generated 19 April 2026 · <a href="DASHBOARD.md" style="color:var(--accent); text-decoration:none;">Markdown version</a>
+</div>
+
+<script>
+function toggleCard(id) {
+  const card = document.getElementById(id);
+  card.classList.toggle('collapsed');
+  const header = card.querySelector('.card-header');
+  header.classList.toggle('collapsed');
+}
+
+function filterCitations() {
+  const query = document.getElementById('cite-search').value.toLowerCase();
+  const rows = document.querySelectorAll('#cite-table tbody tr');
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = text.includes(query) ? '' : 'none';
+  });
+}
+</script>
+
+</body>
+</html>

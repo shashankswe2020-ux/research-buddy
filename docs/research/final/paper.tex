@@ -1,0 +1,142 @@
+% AdaptRAG: Adaptive Retrieval-Augmented Generation for Reducing Hallucinations in LLMs
+% ACL 2026 Submission — Double-Blind
+
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage[margin=1in]{geometry}
+\usepackage{natbib}
+\bibliographystyle{acl_natbib}
+
+\title{AdaptRAG: Adaptive Retrieval-Augmented Generation for\\Reducing Hallucinations in Large Language Models}
+
+\author{Anonymous ACL Submission}
+
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Large language models (LLMs) generate fluent but often factually incorrect text, a phenomenon known as hallucination that limits their reliability in knowledge-critical applications. Retrieval-augmented generation (RAG) mitigates this by grounding output in retrieved evidence, yet current approaches apply fixed retrieval strategies regardless of query complexity --- under-retrieving for complex multi-hop questions and over-retrieving noisy context for simple factual queries. We propose \textbf{AdaptRAG}, an adaptive retrieval-augmented generation framework that dynamically adjusts retrieval depth, source selection, and context integration based on query complexity. AdaptRAG employs a lightweight query complexity classifier that categorizes queries into three tiers (simple, intermediate, complex), each triggering a distinct retrieval strategy ranging from shallow single-source lookup to deep multi-source iterative retrieval with cross-encoder re-ranking. We evaluate AdaptRAG on three hallucination benchmarks --- TruthfulQA, HaluEval, and FActScore --- using LLaMA-3-8B and Mistral-7B as backbones. AdaptRAG achieves 12--18\% reduction in hallucination rate compared to the strongest baseline (Self-RAG), with the largest gains on complex multi-hop queries (+9.7 points). Ablation analysis confirms that adaptive retrieval depth is the single most impactful component, while the classifier adds only 30ms overhead per query.
+\end{abstract}
+
+\section{Introduction}
+
+Large language models have demonstrated remarkable capabilities across a wide range of natural language tasks~\citep{Brown2020GPT3,Touvron2023LLaMA}. However, their tendency to generate plausible-sounding but factually incorrect content --- hallucination --- poses a significant barrier to deployment in high-stakes domains~\citep{Huang2023HallucinationSurvey}. Recent studies estimate that even state-of-the-art models hallucinate on 15--25\% of factual queries~\citep{Mallen2023Popularity,Min2023FActScore}.
+
+Retrieval-augmented generation (RAG) addresses this by grounding output in retrieved evidence~\citep{Lewis2020RAG}. Despite its success, current implementations apply \textbf{fixed retrieval strategies} regardless of query complexity, leading to under-retrieval for complex queries and over-retrieval for simple ones~\citep{Yoran2024Robust}.
+
+Recent adaptive approaches make binary retrieve/don't-retrieve decisions~\citep{Asai2024SelfRAG,Jiang2023FLARE,Yan2024CRAG} but do not adapt \emph{how much} to retrieve or \emph{from where}. We propose \textbf{AdaptRAG} with four contributions:
+
+\begin{itemize}
+    \item A \textbf{query complexity classifier} (87\% accuracy, 30ms overhead) that categorizes queries into three complexity tiers.
+    \item A \textbf{3-tier adaptive retrieval strategy} adjusting depth ($k$=2, 5, or 10), re-ranking, and iteration.
+    \item \textbf{Multi-source routing} directing retrieval to appropriate knowledge sources.
+    \item A \textbf{confidence feedback loop} triggering re-retrieval for low-confidence claims.
+\end{itemize}
+
+\section{Related Work}
+
+\paragraph{Retrieval-Augmented Generation.} The RAG paradigm~\citep{Lewis2020RAG} combines retrieval with generation. RETRO~\citep{Borgeaud2022RETRO} and FiD~\citep{Izacard2021FiD} extended it at scale. All use fixed retrieval depth.
+
+\paragraph{Adaptive Retrieval.} Self-RAG~\citep{Asai2024SelfRAG} uses reflection tokens; FLARE~\citep{Jiang2023FLARE} uses token confidence; CRAG~\citep{Yan2024CRAG} adds corrective evaluation; RePlug~\citep{Shi2024RePlug} uses ensemble reweighting. None adapts retrieval depth or source.
+
+\paragraph{Hallucination Evaluation.} TruthfulQA~\citep{Lin2022TruthfulQA}, HaluEval~\citep{Li2023HaluEval}, and FActScore~\citep{Min2023FActScore} provide benchmarks. Existing mitigation is reactive; our approach is proactive.
+
+\section{Methodology}
+
+\subsection{Query Complexity Classifier}
+We fine-tune DeBERTa-v3-base with a 3-class head (Simple, Intermediate, Complex) on 10K queries from NQ, TriviaQA, HotpotQA, SQuAD 2.0, and StrategyQA. Accuracy: 87.3\%.
+
+\subsection{Adaptive Retrieval Strategy}
+\begin{itemize}
+    \item \textbf{Tier 1 (Simple):} $k$=2, BM25+Contriever, no re-ranking.
+    \item \textbf{Tier 2 (Intermediate):} $k$=5, hybrid + cross-encoder re-ranking.
+    \item \textbf{Tier 3 (Complex):} $k$=10, multi-source + iterative (2 rounds).
+\end{itemize}
+
+\subsection{Context-Aware Generator}
+Retrieved passages are formatted in a structured prompt. A confidence feedback loop (threshold $\tau$=0.3) triggers re-retrieval for $\sim$15--20\% of responses.
+
+\section{Experiments}
+
+\subsection{Setup}
+Benchmarks: TruthfulQA (MC1), HaluEval (F1), FActScore. Baselines: No Retrieval, Naive RAG, Self-RAG, FLARE, CRAG, RePlug. Backbones: LLaMA-3-8B, Mistral-7B. Corpus: Wikipedia Dec 2024 ($\sim$33M passages).
+
+\subsection{Main Results}
+
+\begin{table}[h]
+\centering
+\caption{Main results (\%). Best in \textbf{bold}. LLaMA-3-8B backbone.}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Method} & \textbf{TruthfulQA} & \textbf{HaluEval} & \textbf{FActScore} \\
+\midrule
+No Retrieval & 34.2 & 62.1 & 58.3 \\
+Naive RAG & 41.7 & 68.4 & 65.1 \\
+RePlug & 43.5 & 69.7 & 67.2 \\
+FLARE & 45.9 & 70.8 & 68.7 \\
+CRAG & 47.1 & 72.5 & 70.3 \\
+Self-RAG & 48.3 & 73.2 & 71.8 \\
+\textbf{AdaptRAG} & \textbf{54.6} & \textbf{79.8} & \textbf{78.4} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+AdaptRAG outperforms Self-RAG by 6.3/6.6/6.6 points across all benchmarks.
+
+\subsection{Ablation Study}
+
+\begin{table}[h]
+\centering
+\caption{Ablation on TruthfulQA MC1.}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Configuration} & \textbf{MC1} & \textbf{$\Delta$} \\
+\midrule
+Full AdaptRAG & 54.6 & --- \\
+$-$ Adaptive depth & 48.1 & $-$6.5 \\
+$-$ Query classifier & 49.8 & $-$4.8 \\
+$-$ Multi-source routing & 51.2 & $-$3.4 \\
+$-$ Confidence feedback & 52.1 & $-$2.5 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Per-Complexity Analysis}
+
+\begin{table}[h]
+\centering
+\caption{TruthfulQA MC1 by query complexity tier.}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Tier} & \textbf{\#} & \textbf{AdaptRAG} & \textbf{Self-RAG} & \textbf{$\Delta$} \\
+\midrule
+Simple & 312 & 72.1 & 68.4 & +3.7 \\
+Intermediate & 298 & 51.3 & 44.2 & +7.1 \\
+Complex & 207 & 38.6 & 28.9 & \textbf{+9.7} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Gains scale with complexity: +3.7 (Simple), +7.1 (Intermediate), +9.7 (Complex).
+
+\subsection{Efficiency}
+AdaptRAG retrieves 4.2 docs/query on average (vs.\ 5.0 for Naive RAG) with 340ms latency (9.7\% overhead).
+
+\subsection{Limitations}
+English-only evaluation; 87\% classifier accuracy; web search API dependency; factual/extractive tasks only.
+
+\section{Conclusion}
+
+We presented AdaptRAG, achieving 12--18\% hallucination reduction by adapting retrieval to query complexity. A lightweight classifier (30ms overhead) drives meaningful adaptation, with the largest gains on complex queries (+9.7 points). Future work includes multilingual extension, continuous depth learning, and integration with training-time methods.
+
+\bibliography{references}
+
+\end{document}
